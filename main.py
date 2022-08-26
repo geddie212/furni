@@ -12,6 +12,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = updated_SQL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY')
+app.config['SERVER_NAME'] = 'furni-ture.herokuapp.com'
 db = SQLAlchemy(app)
 
 stripe.api_key = os.environ.get('STRIPE_API')
@@ -71,7 +72,7 @@ def create_checkout_session():
 def delete_product(pid):
     resp = make_response(redirect(url_for('cart')))
     product = ProductCatalog.query.filter_by(id=pid).first()
-    resp.set_cookie(product.name, value='1', domain='127.0.0.1', expires=0)
+    resp.set_cookie(product.name, value='1', domain='furni-ture.herokuapp.com', expires=0)
     return resp
 
 
@@ -115,7 +116,7 @@ def update_cookie():
             products[field] = request.form[field]
     resp = make_response(redirect('checkout'))
     for product in products:
-        resp.set_cookie(product, value=products[product], domain='127.0.0.1')
+        resp.set_cookie(product, value=products[product], domain='furni-ture.herokuapp.com')
     return resp
 
 
@@ -153,7 +154,7 @@ def thankyou():
     resp = make_response(render_template('thankyou.html'))
     names = ProductCatalog.query.all()
     for name in names:
-        resp.set_cookie(name.name, value='1', domain='127.0.0.1', expires=0)
+        resp.set_cookie(name.name, value='1', domain='furni-ture.herokuapp.com', expires=0)
     return resp
 
 
@@ -191,7 +192,7 @@ def update_cart():
 def cookies(pid):
     resp = make_response(redirect(url_for('shop')))
     name = ProductCatalog.query.filter_by(id=str(pid)).first()
-    resp.set_cookie(name.name, value='1', domain='127.0.0.1')
+    resp.set_cookie(name.name, value='1', domain='furni-ture.herokuapp.com')
     return resp
 
 
