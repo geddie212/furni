@@ -1,13 +1,21 @@
 from flask import Flask, render_template, request, redirect, url_for, make_response, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import stripe
+import os
+
+"""TRUE PARAMETERS"""
+SQL = os.environ.get('HEROKU_POSTGRESQL_BRONZE_URL').split('postgres')
+SQL[0] += 'postgresql'
+updated_SQL = f'{SQL[0]}{SQL[1]}'
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = updated_SQL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SECRET_KEY"] = os.environ.get('SECRET_KEY')
 db = SQLAlchemy(app)
 
-stripe.api_key = "sk_test_51LYVtLAWFjVS1bLLLewgZ9tR8hGQPIUvymfthzat2wYqk0017yJeZySA11lrjwClG3K7FCQCBLtEI3pxyxkhfMst00qplzQMnm "
+stripe.api_key = os.environ.get('STRIPE_API')
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -64,13 +72,16 @@ def create_checkout_session():
 def delete_product(pid):
     resp = make_response(redirect(url_for('cart')))
     product = ProductCatalog.query.filter_by(id=pid).first()
-    resp.set_cookie(product.name, value='1', domain='127.0.0.1', expires=0)
+    resp.set_cookie(product.name, value='1', domain='https://furni-ture.herokuapp.com/', expires=0)
     return resp
 
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    names = ProductCatalog.query.all()
+    names = names[0:3]
+    print(names)
+    return render_template('index.html', names=names)
 
 
 @app.route('/about')
@@ -105,7 +116,7 @@ def update_cookie():
             products[field] = request.form[field]
     resp = make_response(redirect('checkout'))
     for product in products:
-        resp.set_cookie(product, value=products[product], domain='127.0.0.1')
+        resp.set_cookie(product, value=products[product], domain='https://furni-ture.herokuapp.com/')
     return resp
 
 
@@ -143,7 +154,7 @@ def thankyou():
     resp = make_response(render_template('thankyou.html'))
     names = ProductCatalog.query.all()
     for name in names:
-        resp.set_cookie(name.name, value='1', domain='127.0.0.1', expires=0)
+        resp.set_cookie(name.name, value='1', domain='https://furni-ture.herokuapp.com/', expires=0)
     return resp
 
 
@@ -181,7 +192,7 @@ def update_cart():
 def cookies(pid):
     resp = make_response(redirect(url_for('shop')))
     name = ProductCatalog.query.filter_by(id=str(pid)).first()
-    resp.set_cookie(name.name, value='1', domain='127.0.0.1')
+    resp.set_cookie(name.name, value='1', domain='https://furni-ture.herokuapp.com/')
     return resp
 
 
